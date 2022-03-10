@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "dfx": "0.8.4",
+  "canisters": {
+    "Bucket": {
+      "type": "motoko",
+      "main": "src/Bucket/main.mo"
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": "",
+      "args": ""
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  }
+}
