@@ -1,5 +1,5 @@
 import Result "mo:base/Result";
-import BucketHttp "BucketHttp";
+import BucketHTTP "BucketHTTP";
 import Types "Types";
 
 actor test {
@@ -14,7 +14,7 @@ actor test {
     type StreamingCallbackHttpResponse = Types.StreamingCallbackHttpResponse;
     type StreamingCallback  = query (CallbackToken) -> async (StreamingCallbackHttpResponse);
 
-    let bucket = BucketHttp.Bucket();
+    let bucket = BucketHTTP.BucketHTTP();
     
     public shared func put(p : PUT, caller : Principal) : async Result.Result<AssetExt, DataErr> {
         bucket.put(p, caller)     
