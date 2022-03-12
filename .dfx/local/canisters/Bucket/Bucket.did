@@ -1,3 +1,23 @@
+type StreamingStrategy = variant {
+                           Callback:
+                            record {
+                              callback:
+                               func (CallbackToken) ->
+                                (StreamingCallbackHttpResponse) query;
+                              token: CallbackToken;
+                            };};
+type StreamingCallbackHttpResponse__1 = 
+ record {
+   body: blob;
+   token: opt CallbackToken;
+ };
+type StreamingCallbackHttpResponse = 
+ record {
+   body: blob;
+   token: opt CallbackToken;
+ };
+type StreamingCallback = func (CallbackToken__1) ->
+                          (StreamingCallbackHttpResponse__1) query;
 type Result_1 = 
  variant {
    err: DataErr;
@@ -18,6 +38,25 @@ type PUT =
    file_name: text;
    total_size: nat;
  };
+type HttpResponse = 
+ record {
+   body: blob;
+   headers: vec HeaderField;
+   status_code: nat16;
+   streaming_strategy: opt StreamingStrategy;
+ };
+type HttpRequest = 
+ record {
+   body: blob;
+   headers: vec HeaderField;
+   method: text;
+   url: text;
+ };
+type HeaderField = 
+ record {
+   text;
+   text;
+ };
 type GET = 
  record {
    file_key: text;
@@ -35,6 +74,18 @@ type Chunk =
    data: blob;
    digest: vec nat8;
  };
+type CallbackToken__1 = 
+ record {
+   index: nat;
+   key: text;
+   max_index: nat;
+ };
+type CallbackToken = 
+ record {
+   index: nat;
+   key: text;
+   max_index: nat;
+ };
 type AssetExt = 
  record {
    bucket_id: principal;
@@ -46,6 +97,8 @@ type AssetExt =
    upload_status: bool;
  };
 service : {
+  build_http: (StreamingCallback) -> ();
   get: (GET) -> (Result_1) query;
+  http_request: (HttpRequest) -> (HttpResponse) query;
   put: (PUT, principal) -> (Result);
 }

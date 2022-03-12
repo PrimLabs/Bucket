@@ -4,7 +4,7 @@
   "canisters": {
     "Bucket": {
       "type": "motoko",
-      "main": "src/Bucket/example.mo"
+      "main": "src/Bucket-HTTP/example.mo"
     }
   },
   "defaults": {

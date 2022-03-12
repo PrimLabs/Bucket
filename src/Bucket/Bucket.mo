@@ -38,11 +38,12 @@ module {
         private var asset_map        = TrieMap.fromEntries<Text, Asset>(asset_entries.vals(), Text.equal, Text.hash);
         private var asset_buffer_map = HashMap.HashMap<Text, AssetBuffer>(10, Text.equal, Text.hash); 
 
-        // 可用内存
+        // Get the current available memory
         public func getAvailableStableMemory() : Nat {
             _getAvailableStableMemory()
         };
-        // 获取数据
+
+        // get the corresponding file
         public func get(g : GET) : Result.Result<Blob, DataErr> {
             switch (_get(g)) {
                 case(#ok(data)) { return #ok(data) };
@@ -50,12 +51,12 @@ module {
             }
         };
 
-        // 获取所有文件元信息
+        // Get meta information for all files
         public func getAssetExts(caller : Principal) : [AssetExt] {
             _getAssetExts(caller)
         };
 
-        // 获取某一个文件的元信息
+        // Get meta information about a file
         public func getAssetExtByKey(file_key : Text, caller : Principal) : Result.Result<AssetExt, DataErr> {
             switch (_getAssetExtByKey(file_key, caller)) {
                 case(#ok(ext)) { return #ok(ext) };
@@ -63,7 +64,7 @@ module {
             }
         };
 
-        // 上传文件块
+        // upload the file chunk
         public func put(p : PUT, caller : Principal) : Result.Result<AssetExt, DataErr> {
             switch (_put(p, caller)) {
                 case (#ok(ext)) { #ok(ext) };
@@ -71,12 +72,12 @@ module {
             }
         };
 
-        // 清空整个Bucket，remake了
+        // clear the Bucket
         public func clear() : Text {
             _clear()
         };
 
-        // 更新前存entries
+        // save entries before update
         public func preUpgrade() : Text {
             _preUpgrade()
         };
@@ -140,13 +141,13 @@ module {
         };
 
 
-        // 检查total_size大小
+        // check total_size
         private func _inspectSize(total_size : Nat) : Result.Result<Nat, DataErr> {
             if (total_size == 0) { return #err(#BlobSizeError) };
             if (total_size <= _getAvailableStableMemory()) { #ok(total_size) } else { #err(#MemoryInsufficient) };
         };
 
-        // 检查chunk大小
+        // check chunk size
         private func _inspectChunkSize(data : Blob, chunk_number : Nat, chunk_order : Nat, total_size : Nat) : Result.Result<Nat, DataErr> {
             var size : Nat = data.size();
             if (size == 0 or total_size == 0) { return #err(#BlobSizeError) };
@@ -167,7 +168,7 @@ module {
                 case (_) {
                     switch (_readPageField(p.total_size)) {
                         case (#ok(read_page_field)) {
-                            // 初始化生成asset_buffer
+                            // Initialize and generate asset_buffer
                             let asset_buffer = {
                                 chunk_number     = p.chunk_number;
                                 total_size       = p.total_size;
@@ -190,6 +191,7 @@ module {
         };
 
         // upload时根据分配好的write_page以vals的形式写入数据
+        // When uploading, write data in the form of vals according to the assigned write_page
         private func _storageData(write_page : [(Nat, Nat)], data : Blob) {
             var index : Nat = 0;
             var page_start = write_page[index].0;
@@ -208,7 +210,7 @@ module {
             };
         };
 
-        // digest信息聚合
+        // digest information aggregation
         private func _appendDigest(prev : [var Nat8], new : [Nat8], order : Nat) {
             var i = order * 32;
             for (num in new.vals()) {
@@ -226,14 +228,17 @@ module {
                 case (null) { return #err(#FileKeyErr) };
                 case (?asset_buffer) {
                     // 先判断该chunk是否写入
+                    // First determine whether the chunk is written
                     if (asset_buffer.wrote_page[chunk_order] == false) {
                         // 新chunk到达时，在wrote_page中在其位置标记为1，防止已写入的chunk又写入一遍
+                        // When a new chunk arrives, its position is marked as 1 in the write_page to prevent the already written chunk from being written again
                         _appendDigest(asset_buffer.digest, chunk.digest, chunk_order);
                         asset_buffer.wrote_page[chunk_order] := true; 
                         asset_buffer.received += 1;
                         _storageData(asset_buffer.write_page_field[chunk_order], chunk.data);
 
                         // 当所有chunk收到时组装成asset
+                        // Assemble an asset when all chunks are received
                         if (asset_buffer.received + 1 == asset_buffer.chunk_number) {
                             let asset : Asset = {
                                 file_key  = _key(Array.freeze(asset_buffer.digest));
@@ -257,6 +262,7 @@ module {
                             }, false, caller))
                         }
                     // 已经写入的chunk直接返回asset_ext
+                    // The chunk that has been written returns directly to asset_ext
                     } else {
                         return #ok(_assetExt({
                             file_key  = file_key;
@@ -300,12 +306,12 @@ module {
             }
         };
 
-        // 获取需要grow的SM内存页数量
+        // Get the number of SM memory pages that need to grow
         private func _getStableMemoryPageNumber(size : Nat) : Nat32 {
             Nat32.fromNat(size / PAGE_SIZE + 1)
         };
 
-        // grow大小为size的SM内存页
+        // grow SM memory pages of size "size"
         private func _growStableMemoryPage(size : Nat) {
             let available_mem : Nat = Nat32.toNat(SM.size()) * PAGE_SIZE - offset;
             if (available_mem < size) {
@@ -322,9 +328,10 @@ module {
             };
         };
 
-        // 文件预分配
+        // file preallocation
         private func _readPageField(total_size : Nat) : Result.Result<[(Nat, Nat)], DataErr> {
             // 检查可用空间是否放得下文件
+            // Check if the free space can fit the file
             switch (_inspectSize(total_size)) {
                 case (#err(err)) { return #err(err); };
                 case (#ok(info)) { };
@@ -352,6 +359,7 @@ module {
         };
 
         // 获得第chunk_number个的write_page的大小，即第chunk_number个chunk中数据的大小
+        // Get the size of the write_page of the chunk_number, that is, the size of the data in the chunk_number of the chunk
         private func _getWritePageSize(write_page_index : Nat, chunk_number : Nat, total_size : Nat) : Nat {
             if (write_page_index == (chunk_number - 1 : Nat)) {
                 total_size - write_page_index * MAX_UPDATE_SIZE
@@ -361,6 +369,7 @@ module {
         };
 
         //根据预分配好的read_page_field分成chunk_number个read_page，以便于将各chunk的数据写入对应的read_page中
+        //Divide into chunk_number read_pages according to the pre-allocated read_page_field, so as to write the data of each chunk into the corresponding read_page
         private func _writePageField(read_page_field : [(Nat, Nat)], chunk_number : Nat, total_size : Nat) : [[(Nat, Nat)]] {
             var write_page_field = Array.init<[(Nat, Nat)]>(chunk_number, []);
             var write_page_size : Nat = 0; 
