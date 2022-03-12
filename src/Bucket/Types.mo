@@ -36,13 +36,13 @@ module{
     };
 
     public type PUT = {
-        file_key : Text;
+        file_key : Text; 
         file_name : Text;
         file_extension : Text;
         chunk : Chunk;
         chunk_number : Nat;
         chunk_order : Nat;
-        total_size : Nat;
+        total_size : Nat; 
     };
 
     public type GET = {
@@ -57,39 +57,4 @@ module{
         #FlagErr;
     };
 
-// ----------HTTP-------------------------
-
-    public type HeaderField = (Text, Text);
-
-    public type CallbackToken = {
-        index: Nat;
-        max_index: Nat;
-        key: Text;
-    };
-
-    public type StreamingCallbackHttpResponse  = {
-        body: Blob;
-        token: ?CallbackToken;
-    };
-
-    public type StreamingStrategy  = {
-        #Callback: {
-            callback: query (CallbackToken) -> async (StreamingCallbackHttpResponse);
-            token: CallbackToken;
-        }
-    };
-
-    public type HttpRequest = {
-        method: Text;
-        url: Text;
-        headers: [HeaderField];
-        body: Blob;
-    };
-
-    public type HttpResponse = {
-        status_code: Nat16;
-        headers: [HeaderField];
-        body: Blob;
-        streaming_strategy: ?StreamingStrategy ;
-    };
 };
