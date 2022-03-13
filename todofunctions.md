@@ -1,5 +1,7 @@
-Class Bucket(){\
-###Type
+Class Bucket()
+
+### Type
+
   struct Error = {
     #INSUFFICIENT_MEMORY;
     #INVALID_KEY;
@@ -21,4 +23,3 @@ Class Bucket(){\
 ### Upgrade
   public func preupgrade : transform the assets into assets_entries \
   public func postupgrade : assets_entries := []\
-}
