@@ -10,7 +10,7 @@ Class Bucket()
 
 ### Map
   non-stable : var assets : TrieMap<Blob, [(Nat, Nat)]> \
-  stable var assets_entries : [(Blob, [(Nat, Nat)])] \
+  stable var assets_entries : [(Blob, [(Nat, Nat)])]
 
 ### Put
   putBlob : (Blob, Blob) -> Result<(), Error> \
@@ -18,8 +18,8 @@ Class Bucket()
 
 ### Get
   getBlob : Blob -> Result<Blob, Error> \ 
-  get<V> : (Blob, func : Blob -> V) -> Result<V, Error> \
+  get<V> : (Blob, func : Blob -> V) -> Result<V, Error>
 
 ### Upgrade
   public func preupgrade : transform the assets into assets_entries \
-  public func postupgrade : assets_entries := []\
+  public func postupgrade : assets_entries := []
