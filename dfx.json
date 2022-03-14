@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "dfx": "0.8.4",
+  "dfx": "0.9.2",
   "canisters": {
     "Bucket": {
       "type": "motoko",
@@ -10,7 +10,7 @@
   "defaults": {
     "build": {
       "packtool": "",
-      "args": ""
+      "args": "--max-stable-pages=131072"
     }
   },
   "networks": {
