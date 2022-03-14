@@ -34,8 +34,9 @@ module {
                         case(?pre_field){
                             let present_field = Array.append<(Nat64, Nat)>(pre_field, [field]);
                             assets.put(key, present_field);
-                        }
-                    }
+                        };
+                    };
+                    _storageData(field.0, value);
                 };
                 case(#err(err)) { return #err(err) };
             };
@@ -83,6 +84,7 @@ module {
                 case (#err(err)) { #err(err) };
                 case (#ok(_)) {
                     let field = (Nat64.fromNat(offset), total_size);
+                    _growStableMemoryPage(total_size);
                     offset += total_size;
                     #ok(field)
                 };
@@ -97,7 +99,8 @@ module {
         // upload时根据分配好的write_page以vals的形式写入数据
         // When uploading, write data in the form of vals according to the assigned write_page
         private func _storageData(start : Nat64, data : Blob) {
-            assert(Nat64.toNat(start) == data.size());
+            // ??? 这里应该写错了？？ 待解决。。。
+            //assert(Nat64.toNat(start) == data.size());
             SM.storeBlob(start, data)
         };
 
@@ -128,6 +131,6 @@ module {
                 };
             };
         };
-
+        
     }; 
 };
