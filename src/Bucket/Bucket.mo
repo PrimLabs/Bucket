@@ -78,7 +78,6 @@ module {
             SM.loadBlob(field.0, field.1)
         };
 
-        // FINISHED
         private func _getField(total_size : Nat) : Result.Result<(Nat64, Nat), Error> {
             switch (_inspectSize(total_size)) {
                 case (#err(err)) { #err(err) };
@@ -90,7 +89,6 @@ module {
             }
         };
 
-        // FINISHED
         // check total_size
         private func _inspectSize(total_size : Nat) : Result.Result<(), Error> {
             if (total_size <= _getAvailableMemorySize()) { #ok(()) } else { #err(#INSUFFICIENT_MEMORY) };
@@ -103,7 +101,6 @@ module {
             SM.storeBlob(start, data)
         };
 
-        // FINISHED
         // return available memory size can be allocated
         private func _getAvailableMemorySize() : Nat{
             if(upgradable){
@@ -114,7 +111,6 @@ module {
             }
         };
 
-        // FINISHED
         // grow SM memory pages of size "size"
         private func _growStableMemoryPage(size : Nat) {
             if(offset == 8){ ignore SM.grow(1 : Nat64) };
