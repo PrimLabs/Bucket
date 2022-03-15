@@ -1,34 +1,38 @@
 import Bucket "Bucket";
 import Blob "mo:base/Blob";
 import Text "mo:base/Text";
+import Array "mo:base/Array";
 import Result "mo:base/Result";
 import Nat "mo:base/Nat";
+import Debug "mo:base/Debug";
+
 actor example{
 
     type Error = Bucket.Error;
-
     type S = {
         text : Text;
         bool : Bool
     };
-
     stable var bucket_entries : [(Blob, [(Nat64, Nat)])] = [];
-    let Bucket = Bucket.Bucket(true); // true : upgradable, false : unupgradable
+    let bucket = Bucket.Bucket(true); // true : upgradable, false : unupgradable
 
-    public query func getBlob() : async Result.Result<[Blob], Error>{
-        let key = Text.encodeUtf8("key");
-        Bucket.get(key)
-    };
-
-    public query func get() : async Result.Result<[S], Error>{
-        let key = Text.encodeUtf8("key");
-        switch(Bucket.get(key)){
-            case(#err(info)){ #err(info) };
-            case(#ok(data)){ deserialize(data) }
+    public query func getBlob(key : Blob) : async Result.Result<[Blob], Error>{
+        switch(bucket.get(key)){
+            case(#err(e)){ #err(e) };
+            case(#ok(blob)){
+                #ok(blob)
+            }
         }
     };
 
-    public func put() : async Result<(), Error>{
+    public query func get(key : Blob) : async Result.Result<[S], Error>{
+        switch(bucket.get(key)){
+            case(#err(info)){ #err(info) };
+            case(#ok(data)){ #ok(deserialize(data)) };
+        };
+    };
+
+    public func put() : async Result.Result<(), Error>{
         let key = Text.encodeUtf8("key");
         let value_1 : S = {
             text = "this is the first slice of value";
@@ -38,22 +42,22 @@ actor example{
             text = "this is the second slice of value";
             bool = false
         };
-        switch(Bucket.put(key, serialize(value_1))){
+        switch(bucket.put(key, serialize(value_1))){
             case(#err(e)){ return #err(e) };
             case(_){};
         };
         // you can storage the two different value using the same key
-        switch(Bucket.put(key, serialize(value_2))){
+        switch(bucket.put(key, serialize(value_2))){
             case(#err(e)){ return #err(e) };
             case(_){};
         };
         #ok(())
     };
 
-    public func putBlob() : async Result<(), Error>{
+    public func putBlob() : async Result.Result<(), Error>{
         let key = Text.encodeUtf8("key");
         let value = Text.encodeUtf8("this is the value");
-        switch(Bucket.put(key, value)){
+        switch(bucket.put(key, value)){
             case(#err(e)){ return #err(e) };
             case(_){};
         };
@@ -61,7 +65,7 @@ actor example{
     };
 
     system func preupgrade(){
-        bucket_entries := Bucket.preupgrade();
+        bucket_entries := bucket.preupgrade();
     };
 
     system func postupgrade(){
@@ -70,7 +74,7 @@ actor example{
 
     // you should encode the segment of the struct into nat8
     // then you should merge them and transform the [Nat8] to Blob
-    func serialize(s : S) : Blob{
+    private func serialize(s : S) : Blob{
         let bool_nat8 = if(s.bool){
             1 : Nat8
         }else{ 0 : Nat8 };
@@ -80,7 +84,7 @@ actor example{
         Blob.fromArray(serialize_data)
     };
 
-    func deserialize(data : [Blob]) : [S] {
+    private func deserialize(data : [Blob]) : [S] {
         let res = Array.init<S>(data.size(), {
             text = "";
             bool = true;
@@ -107,7 +111,8 @@ actor example{
                     bool = bool
                 };
             res_index += 1;
-        }
+        };
+        Array.freeze(res)
     };
 
 }

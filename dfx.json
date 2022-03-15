@@ -2,9 +2,9 @@
   "version": 1,
   "dfx": "0.9.2",
   "canisters": {
-    "Bucket": {
+    "example": {
       "type": "motoko",
-      "main": "src/Bucket/Bucket.mo"
+      "main": "src/Bucket/example.mo"
     }
   },
   "defaults": {
