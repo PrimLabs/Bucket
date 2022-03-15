@@ -54,19 +54,23 @@ You can use this just like using the TireMap.
   public func postupgrade(entries : [var (Blob, [(Nat64, Nat)])]): ()
   ```
 
-  
 
+**[more details please read the demo](https://github.com/PrimLabs/Bucket/blob/main/src/Bucket/example.mo)**
+
+<span id="Bucket-HTTP"></span>
 ##  Bucket-HTTP
 
 The difference between Bucket-HTTP and Bucket is that Bucket-HTTP has built-in **http_request**, so people can query files through **canisterID.raw.ic0.app/fk/file_key**
 
 example
 
-``bs5jn-2aaaa-aaaai-qhtaq-cai.raw.ic0.app/fk/8B091EE0CB685ABD376F7645A6A57E9E118671DF003444C1C13B37E2FCAFCEA7``
+```
+bs5jn-2aaaa-aaaai-qhtaq-cai.raw.ic0.app/fk/8B091EE0CB685ABD376F7645A6A57E9E118671DF003444C1C13B37E2FCAFCEA7
+```
 
 Due to the problem of IC mainnet, HTTP-StreamingCallback cannot work at present, so only files less than or equal to **3M** can be accessed through http.
 
-We will fix this deficiency as soon as possible.
+**We will fix this deficiency as soon as possible.**
 
 ## Disclaimer
 
