@@ -6,8 +6,9 @@ import Text "mo:base/Text";
 import Nat64 "mo:base/Nat64";
 import SM "mo:base/ExperimentalStableMemory";
 import Prim "mo:⛔";
+import Debug "mo:base/Debug";
 
-module {
+module Bucket{
 
     public type Error = {
         #INSUFFICIENT_MEMORY;
@@ -34,8 +35,9 @@ module {
                         case(?pre_field){
                             let present_field = Array.append<(Nat64, Nat)>(pre_field, [field]);
                             assets.put(key, present_field);
-                        }
-                    }
+                        };
+                    };
+                    _storageData(field.0, value);
                 };
                 case(#err(err)) { return #err(err) };
             };
@@ -83,7 +85,11 @@ module {
                 case (#err(err)) { #err(err) };
                 case (#ok(_)) {
                     let field = (Nat64.fromNat(offset), total_size);
+                    Debug.print(debug_show("get field : " # debug_show(field))); // for testing
+                    _growStableMemoryPage(total_size);
+                    Debug.print(debug_show("before grow offset :  " # debug_show(offset))); // for testing
                     offset += total_size;
+                    Debug.print(debug_show("after grow offset :  " # debug_show(offset))); // for testing
                     #ok(field)
                 };
             }
@@ -97,7 +103,8 @@ module {
         // upload时根据分配好的write_page以vals的形式写入数据
         // When uploading, write data in the form of vals according to the assigned write_page
         private func _storageData(start : Nat64, data : Blob) {
-            assert(Nat64.toNat(start) == data.size());
+            //assert(Nat64.toNat(start) == data.size());
+            Debug.print(debug_show("storage data : offset : " # debug_show(offset) # "data size" # debug_show(data.size()))); // for testing
             SM.storeBlob(start, data)
         };
 
@@ -105,6 +112,7 @@ module {
         private func _getAvailableMemorySize() : Nat{
             if(upgradable){
                 assert(THRESHOLD >= Prim.rts_memory_size() + offset);
+                Debug.print(debug_show("available memory  : " # debug_show(THRESHOLD - Prim.rts_memory_size() - offset))); // for testing
                 THRESHOLD - Prim.rts_memory_size() - offset
             }else{
                 THRESHOLD - offset
@@ -117,17 +125,20 @@ module {
             let available_mem : Nat = Nat64.toNat(SM.size()) * PAGE_SIZE - offset;
             if (available_mem < size) {
                 let need_allo_size : Nat = size - available_mem;
+                Debug.print("need allocate memory size : " # debug_show(need_allo_size));
                 let growPage = Nat64.fromNat(size / PAGE_SIZE + 1);
                 if ((growPage + SM.size() <= MAX_PAGE_NUMBER)) {
+                    Debug.print("need grow pages : " # debug_show(growPage));
                     ignore SM.grow(growPage);
                 } else if ((growPage + SM.size() - 1 : Nat64) == MAX_PAGE_NUMBER) {
                     let newGrowPage : Nat64 = growPage - 1;
                     if (newGrowPage > 0) {
+                        Debug.print("need grow pages : " # debug_show(growPage));
                         ignore SM.grow(newGrowPage);
                     };
                 };
             };
         };
 
-    }; 
+    };
 };
