@@ -18,7 +18,7 @@ module {
     public class Bucket(upgradable : Bool) {
         private let THRESHOLD               = 6442450944;
         // MAX_PAGE_SIZE = 8 GB(total size of stable memory currently) / 64 KB(each page size = 64 KB)
-        private let PAGE_SIZE               = 131072;
+        private let MAX_PAGE_BYTE               = 65536;
         private let MAX_PAGE_NUMBER         = 131072 : Nat64;
         private let MAX_QUERY_SIZE          = 3144728;
         private var offset                  = 8; // 0 - 7 is used for offset
@@ -117,20 +117,13 @@ module {
         // grow SM memory pages of size "size"
         private func _growStableMemoryPage(size : Nat) {
             if(offset == 8){ ignore SM.grow(1 : Nat64) };
-            let available_mem : Nat = Nat64.toNat(SM.size()) * PAGE_SIZE - offset;
+            let available_mem : Nat = Nat64.toNat(SM.size()) * MAX_PAGE_BYTE + 1 - offset;
             if (available_mem < size) {
                 let need_allo_size : Nat = size - available_mem;
-                let growPage = Nat64.fromNat(size / PAGE_SIZE + 1);
-                if ((growPage + SM.size() <= MAX_PAGE_NUMBER)) {
-                    ignore SM.grow(growPage);
-                } else if ((growPage + SM.size() - 1 : Nat64) == MAX_PAGE_NUMBER) {
-                    let newGrowPage : Nat64 = growPage - 1;
-                    if (newGrowPage > 0) {
-                        ignore SM.grow(newGrowPage);
-                    };
-                };
-            };
+                let growPage = Nat64.fromNat(need_allo_size / MAX_PAGE_BYTE + 1);
+                ignore SM.grow(growPage);
+            }
         };
-        
-    }; 
+
+    };
 };
