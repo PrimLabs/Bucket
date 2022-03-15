@@ -69,6 +69,7 @@ actor example{
     };
 
     system func postupgrade(){
+        bucket.postupgrade(bucket_entries);
         bucket_entries := [];
     };
 
