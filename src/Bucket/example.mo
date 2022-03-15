@@ -16,18 +16,16 @@ actor example{
     stable var bucket_entries : [(Blob, [(Nat64, Nat)])] = [];
     let bucket = Bucket.Bucket(true); // true : upgradable, false : unupgradable
 
-    public query func getBlob(key : Blob, index : Nat) : async Result.Result<Blob, Error>{
-        //let key = Text.encodeUtf8("key");
+    public query func getBlob(key : Blob) : async Result.Result<[Blob], Error>{
         switch(bucket.get(key)){
             case(#err(e)){ #err(e) };
             case(#ok(blob)){
-                #ok(blob[index])
+                #ok(blob)
             }
         }
     };
 
-    public query func get() : async Result.Result<[S], Error>{
-        let key = Text.encodeUtf8("key");
+    public query func get(key : Blob) : async Result.Result<[S], Error>{
         switch(bucket.get(key)){
             case(#err(info)){ #err(info) };
             case(#ok(data)){ #ok(deserialize(data)) };
@@ -56,9 +54,9 @@ actor example{
         #ok(())
     };
 
-    public func putBlob(key : Blob, value : Blob) : async Result.Result<(), Error>{
-        //let key = Text.encodeUtf8("key");
-        //let value = Text.encodeUtf8("this is the value");
+    public func putBlob() : async Result.Result<(), Error>{
+        let key = Text.encodeUtf8("key");
+        let value = Text.encodeUtf8("this is the value");
         switch(bucket.put(key, value)){
             case(#err(e)){ return #err(e) };
             case(_){};
