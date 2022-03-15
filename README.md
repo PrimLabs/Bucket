@@ -1,10 +1,13 @@
 # Bucket
 
-The Project is a **storage standard** applied to canisters.
+The library is a **storage library** for canisters to manage Stable Memory. \
 
-Its goal is to become a general data storage standard on [Internet Computer](https://dfinity.org/) (IC). By using this standard, just **one line of import code**, developers can easily use data storage functions such as put, get when writing canister smart contracts on IC without repeating develop this aspect.
+As far as we know, canisters taht storage data into stable memory have many advantages, such as :
+- upgradable (when rts memory goes large)
+- larger storage space : Stable Memory can be allocated to 8 GB as present
+- no gc cost
 
-In order to be compatible with the existing development ecology, we develop two version standard:
+Therefore, In order to be compatible with the existing development ecology, we develop two versions :
 
 - [Bucket](#Bucket)
 - [Bucket-HTTP](#Bucket-HTTP)
