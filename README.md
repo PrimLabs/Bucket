@@ -2,7 +2,7 @@
 
 The library is a **storage library** for canisters to manage Stable Memory. \
 
-As far as we know, canisters taht storage data into stable memory have many advantages, such as :
+As far as we know, canisters that storage data into stable memory have many advantages, such as :
 - upgradable (when rts memory goes large)
 - larger storage space : Stable Memory can be allocated to 8 GB as present
 - no gc cost
