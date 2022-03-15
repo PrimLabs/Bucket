@@ -4,6 +4,7 @@ import Text "mo:base/Text";
 import Array "mo:base/Array";
 import Result "mo:base/Result";
 import Nat "mo:base/Nat";
+import Debug "mo:base/Debug";
 
 actor example{
 
@@ -15,9 +16,14 @@ actor example{
     stable var bucket_entries : [(Blob, [(Nat64, Nat)])] = [];
     let bucket = Bucket.Bucket(true); // true : upgradable, false : unupgradable
 
-    public query func getBlob() : async Result.Result<[Blob], Error>{
-        let key = Text.encodeUtf8("key");
-        bucket.get(key)
+    public query func getBlob(key : Blob, index : Nat) : async Result.Result<Blob, Error>{
+        //let key = Text.encodeUtf8("key");
+        switch(bucket.get(key)){
+            case(#err(e)){ #err(e) };
+            case(#ok(blob)){
+                #ok(blob[index])
+            }
+        }
     };
 
     public query func get() : async Result.Result<[S], Error>{
@@ -50,9 +56,9 @@ actor example{
         #ok(())
     };
 
-    public func putBlob() : async Result.Result<(), Error>{
-        let key = Text.encodeUtf8("key");
-        let value = Text.encodeUtf8("this is the value");
+    public func putBlob(key : Blob, value : Blob) : async Result.Result<(), Error>{
+        //let key = Text.encodeUtf8("key");
+        //let value = Text.encodeUtf8("this is the value");
         switch(bucket.put(key, value)){
             case(#err(e)){ return #err(e) };
             case(_){};
