@@ -70,7 +70,7 @@ module {
             Array.freeze<(Blob, [(Nat64, Nat)])>(assets_entries)
         };
 
-        public func postupgrade(entries : [var (Blob, [(Nat64, Nat)])]): () {
+        public func postupgrade(entries : [(Blob, [(Nat64, Nat)])]): () {
             offset := Nat64.toNat(SM.loadNat64(0:Nat64));
             assets := TrieMap.fromEntries<Blob, [(Nat64, Nat)]>(entries.vals(), Blob.equal, Blob.hash);
         };
