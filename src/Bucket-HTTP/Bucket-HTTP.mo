@@ -4,6 +4,7 @@ import Blob "mo:base/Blob";
 import Array "mo:base/Array";
 import Text "mo:base/Text";
 import Nat64 "mo:base/Nat64";
+import Nat "mo:base/Nat";
 import SM "mo:base/ExperimentalStableMemory";
 import Prim "mo:⛔";
 
@@ -15,13 +16,41 @@ module {
         #INVALID_KEY;
     };
 
-    public class Bucket(upgradable : Bool) {
+    public type HeaderField = (Text, Text);
+    public type StreamingCallbackHttpResponse = {
+        body: Blob;
+        token: ?Token;
+    };
+    public type Token = {};
+    public type StreamingStrategy = {
+        #Callback: {
+            callback: query (Token) -> async(StreamingCallbackHttpResponse);
+            token: Token;
+        }
+    };
+    public type HttpRequest = {
+        method: Text;
+        url: Text;
+        headers: [HeaderField];
+        body: Blob;
+    };
+    public type HttpResponse = {
+        status_code: Nat16;
+        headers: [HeaderField];
+        body: Blob;
+        streaming_strategy: ?StreamingStrategy;
+    };
+    
+    public type DecodeKey = (Text) -> (Blob);
+    
+    public class BucketHttp(upgradable : Bool) {
         private let THRESHOLD               = 6442450944;
         // MAX_PAGE_SIZE = 8 GB(total size of stable memory currently) / 64 KB(each page size = 64 KB)
-        private let MAX_PAGE_BYTE               = 65536;
+        private let MAX_PAGE_BYTE           = 65536;
         private let MAX_PAGE_NUMBER         = 131072 : Nat64;
         private let MAX_QUERY_SIZE          = 3144728;
         private var offset                  = 8; // 0 - 7 is used for offset
+        private var decodekey: ?DecodeKey   = null;
         var assets = TrieMap.TrieMap<Blob, [(Nat64, Nat)]>(Blob.equal, Blob.hash);
 
         public func put(key: Blob, value : Blob): Result.Result<(), Error> {
@@ -58,6 +87,35 @@ module {
             };
         };
 
+        public func http_request(request: HttpRequest): HttpResponse {
+            switch(decodekey) {
+                case(null) { return errStaticpage("decodekey wrong");};
+                case(?getkey) {
+                    let key = getkey(request.url);
+                    switch(get(key)) {
+                        case(#err(err)) { return errStaticpage("get wrong");};
+                        case(#ok(ans)) {
+                            let number = ans.size();
+                            if(number == 1) {
+                                let payload = ans[0];
+                                return {
+                                    status_code = 200;
+                                    headers = [("Content-Type", "text/plain"), ("Content-Length", Nat.toText(payload.size()))];
+                                    streaming_strategy = null;
+                                    body = payload;
+                                };
+                            };
+                        };
+                    };                    
+                };
+            };
+            errStaticpage("somting wrong")
+        };
+
+        public func build_http(fn_: DecodeKey): () {
+            decodekey := ?fn_;
+        };
+        
         // return entries
         public func preupgrade(): [(Blob, [(Nat64, Nat)])] {
             SM.storeNat64(0 : Nat64, Nat64.fromNat(offset));
@@ -120,6 +178,15 @@ module {
                 let need_allo_size : Nat = size - available_mem;
                 let growPage = Nat64.fromNat(need_allo_size / MAX_PAGE_BYTE + 1);
                 ignore SM.grow(growPage);
+            }
+        };
+
+        private func errStaticpage(err: Text): HttpResponse {
+            {
+                status_code = 404;
+                headers = [("Content-Type", "text/plain")];
+                body = Text.encodeUtf8(err);
+                streaming_strategy = null;
             }
         };
 
