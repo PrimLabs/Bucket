@@ -117,6 +117,7 @@ Due to the problem of IC mainnet, HTTP-StreamingCallback cannot work at present,
   ```
 
 - **build_http** : Pass in the function that parses the key in the url,the key is used to get the value
+- ATTENTION : YOU MUST SET YOUR DECODE FUNCITON OR REWRITE IT AND CALL THE BUILD FUNCTION TO ENABLE IT WHEN YOU NEED TO USE THE HTTP INTERFACE.
 
   ```motoko
   public func build_http(fn_: DecodeUrl): ()
