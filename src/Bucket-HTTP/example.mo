@@ -6,6 +6,7 @@ import Result "mo:base/Result";
 import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
 import Debug "mo:base/Debug";
+import SM "mo:base/ExperimentalStableMemory";
 
 actor example{
 
@@ -13,6 +14,7 @@ actor example{
     type HttpResponse = BucketHttp.HttpResponse;
 
     type Error = BucketHttp.Error;
+    stable var entries : [(Text, [(Nat64, Nat)])] = [];
     let bucket = BucketHttp.BucketHttp(true); // true : upgradable, false : unupgradable
     
     //host/static/<photo_id>
@@ -23,7 +25,7 @@ actor example{
         };
         return "Wrong key";
     };
-    
+
     public func build_http(): async () {
         bucket.build_http(decodeurl);
     };
@@ -31,7 +33,7 @@ actor example{
     public query func http_request(request: HttpRequest): async HttpResponse {
         bucket.http_request(request)
     };
-    
+
     public query func getBlob(key: Text) : async Result.Result<[Blob], Error>{
         switch(bucket.get(key)){
             case(#err(e)){ #err(e) };
@@ -40,7 +42,7 @@ actor example{
             }
         }
     };
-    
+
     public shared func putImg(key: Text,value: Blob) : async Result.Result<(), Error>{
         switch(bucket.put(key, value)){
             case(#err(e)){ return #err(e) };
@@ -57,6 +59,15 @@ actor example{
             case(_){};
         };
         #ok(())
+    };
+
+    system func preupgrade(){
+        entries := bucket.preupgrade();
+    };
+
+    system func postupgrade(){
+        bucket.postupgrade(entries);
+        entries := [];
     };
 
 }
