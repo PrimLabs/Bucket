@@ -148,7 +148,7 @@ Due to the problem of IC mainnet, HTTP-StreamingCallback cannot work at present,
 **[more details please read the demo](https://github.com/PrimLabs/Bucket/blob/main/src/Bucket-HTTP/example.mo)**
 
 ## dfx.json
-you should point out how much stable memory pages you want to use in dfx.json
+you should point out how much stable memory pages you want to use in dfx.json(recommendation : 131072)
 ```
 "build" :{
    "args": "--max-stable-pages=131072" // the max size is 131072 [131072 = 8G / 64KB(each page size)]
