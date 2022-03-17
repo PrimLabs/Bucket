@@ -75,7 +75,7 @@ The difference between Bucket-HTTP and Bucket is that Bucket-HTTP has built-in *
 example
 
 ```
-https://2fli5-jyaaa-aaaao-aabea-cai.raw.ic0.app/static/72
+https://2fli5-jyaaa-aaaao-aabea-cai.raw.ic0.app/static/0
 ```
 
 Due to the problem of IC mainnet, HTTP-StreamingCallback cannot work at present, so only files less than or equal to **2M** can be accessed through http.
