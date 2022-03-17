@@ -1,6 +1,6 @@
 # Bucket
 
-The library is a **storage library** for canisters to manage Stable Memory. \
+The library is a **storage library** for canisters to manage Stable Memory. 
 
 As far as we know, canisters that storage data into stable memory have many advantages, such as :
 - upgradable (when rts memory goes large)
@@ -11,15 +11,14 @@ Therefore, In order to be compatible with the existing development ecology, we d
 
 - [Bucket](#Bucket)
 - [Bucket-HTTP](#Bucket-HTTP)
-- [demo](https://github.com/PrimLabs/Bucket/blob/main/src/Bucket/example.mo)
 
-You can use this just like using the TireMap.
+You can use this as simple as using the TireMap.
 
 <span id="Bucket"></span>
 
 ##  Bucket
 
-- First, you need to import bucket in your project 
+- First, you need to import Bucket in your project 
 
    ```motoko
    import Bucket "Bucket";
@@ -27,8 +26,16 @@ You can use this just like using the TireMap.
 
 - Second, you need to declare a Bucket
 
+   **upgrade** ：This means that you can upgrade your canister without discarding files stored in the stablememory
+   
    ```motoko
    let bucket = Bucket.Bucket(true); // true : upgradable, false : unupgradable
+   ```
+   
+   **unupgradable** : This means that if you upgrade your canister, you will discard files stored in the stablememory
+   
+   ```motoko
+   let bucket = Bucket.Bucket(false); // true : upgradable, false : unupgradable
    ```
 
 ###  API
@@ -36,44 +43,108 @@ You can use this just like using the TireMap.
 - **put** ：put the value into stablememory,use key to index
 
   ```motoko
-  public func put(key: Blob, value : Blob): Result.Result<(), Error>
+  public func put(key: Text, value : Blob): Result.Result<(), Error>
   ```
 
 - **get** : use the key to get the value
 
   ```motoko
-   public func get(key: Blob): Result.Result<[Blob], Error>
+  public func get(key: Text): Result.Result<[Blob], Error>
   ```
 
-- **preupgrade**
+- **preupgrade** : return entries
 
   ```motoko
-  public func preupgrade(): [(Blob, [(Nat64, Nat)])] 
+  public func preupgrade(): [(Text, [(Nat64, Nat)])]
   ```
 
 - **postupgrade**
 
   ```motoko
-  public func postupgrade(entries : [var (Blob, [(Nat64, Nat)])]): ()
+  public func postupgrade(entries : [(Text, [(Nat64, Nat)])]): ()
   ```
-
 
 **[more details please read the demo](https://github.com/PrimLabs/Bucket/blob/main/src/Bucket/example.mo)**
 
 <span id="Bucket-HTTP"></span>
+
 ##  Bucket-HTTP
 
-The difference between Bucket-HTTP and Bucket is that Bucket-HTTP has built-in **http_request**, so people can query files through **canisterID.raw.ic0.app/fk/file_key**
+The difference between Bucket-HTTP and Bucket is that Bucket-HTTP has built-in **http_request**, so people can query files through example : **canisterID.raw.ic0.app/static/key**
 
 example
 
 ```
-bs5jn-2aaaa-aaaai-qhtaq-cai.raw.ic0.app/fk/8B091EE0CB685ABD376F7645A6A57E9E118671DF003444C1C13B37E2FCAFCEA7
+https://2fli5-jyaaa-aaaao-aabea-cai.raw.ic0.app/static/72
 ```
 
-Due to the problem of IC mainnet, HTTP-StreamingCallback cannot work at present, so only files less than or equal to **3M** can be accessed through http.
+Due to the problem of IC mainnet, HTTP-StreamingCallback cannot work at present, so only files less than or equal to **2M** can be accessed through http.
 
 **We will fix this deficiency as soon as possible.**
+
+- First, you need to import Bucket-HTTP in your project 
+
+   ```motoko
+   import BucketHttp "Bucket-HTTP";
+   ```
+
+- Second, you need to declare a Bucket-HTTP
+
+   **upgrade** ：This means that you can upgrade your canister without discarding files stored in the stablememory
+   
+   ```motoko
+   let bucket = BucketHttp.BucketHttp(true); // true : upgradable, false : unupgradable
+   ```
+   
+   **unupgradable** : This means that if you upgrade your canister, you will discard files stored in the stablememory
+   
+   ```motoko
+   let bucket = BucketHttp.BucketHttp(false);// true : upgradable, false : unupgradable
+   ```
+
+###  API
+
+- **put** ：put the value into stablememory,use key to index
+
+  ```motoko
+  public func put(key: Text, value : Blob): Result.Result<(), Error>
+  ```
+
+- **get** : use the key to get the value
+
+  ```motoko
+  public func get(key: Text): Result.Result<[Blob], Error>
+  ```
+
+- **build_http** : Pass in the function that parses the key in the url,the key is used to get the value
+
+  ```motoko
+  public func build_http(fn_: DecodeUrl): ()
+  ```
+
+  ```motoko
+  public type DecodeUrl = (Text) -> (Text);
+  ```
+
+- **http_request**
+
+  ```motoko
+  public func http_request(request: HttpRequest): HttpResponse
+  ```
+
+- **preupgrade** : return entries
+
+  ```motoko
+  public func preupgrade(): [(Text, [(Nat64, Nat)])]
+  ```
+
+- **postupgrade**
+
+  ```motoko
+  public func postupgrade(entries : [(Text, [(Nat64, Nat)])]): ()
+  ```
+
+**[more details please read the demo](https://github.com/PrimLabs/Bucket/blob/main/src/Bucket-HTTP/example.mo)**
 
 ## Disclaimer
 
