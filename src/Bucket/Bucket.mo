@@ -22,9 +22,9 @@ module {
         private let MAX_PAGE_NUMBER         = 131072 : Nat64;
         private let MAX_QUERY_SIZE          = 3144728;
         private var offset                  = 8; // 0 - 7 is used for offset
-        var assets = TrieMap.TrieMap<Blob, [(Nat64, Nat)]>(Blob.equal, Blob.hash);
+        var assets = TrieMap.TrieMap<Text, [(Nat64, Nat)]>(Text.equal, Text.hash);
 
-        public func put(key: Blob, value : Blob): Result.Result<(), Error> {
+        public func put(key: Text, value : Blob): Result.Result<(), Error> {
             switch(_getField(value.size())) {
                 case(#ok(field)) {
                     switch(assets.get(key)){
@@ -43,7 +43,7 @@ module {
             #ok(())
         };
 
-        public func get(key: Blob): Result.Result<[Blob], Error> {
+        public func get(key: Text): Result.Result<[Blob], Error> {
             switch(assets.get(key)) {
                 case(null) { return #err(#INVALID_KEY) };
                 case(?field) {
@@ -59,20 +59,20 @@ module {
         };
 
         // return entries
-        public func preupgrade(): [(Blob, [(Nat64, Nat)])] {
+        public func preupgrade(): [(Text, [(Nat64, Nat)])] {
             SM.storeNat64(0 : Nat64, Nat64.fromNat(offset));
             var index = 0;
-            var assets_entries = Array.init<(Blob, [(Nat64, Nat)])>(assets.size(), ("":Blob, []));
+            var assets_entries = Array.init<(Text, [(Nat64, Nat)])>(assets.size(), ("", []));
             for (kv in assets.entries()) {
                 assets_entries[index] := kv;
                 index += 1;
             };
-            Array.freeze<(Blob, [(Nat64, Nat)])>(assets_entries)
+            Array.freeze<(Text, [(Nat64, Nat)])>(assets_entries)
         };
 
-        public func postupgrade(entries : [(Blob, [(Nat64, Nat)])]): () {
+        public func postupgrade(entries : [(Text, [(Nat64, Nat)])]): () {
             offset := Nat64.toNat(SM.loadNat64(0:Nat64));
-            assets := TrieMap.fromEntries<Blob, [(Nat64, Nat)]>(entries.vals(), Blob.equal, Blob.hash);
+            assets := TrieMap.fromEntries<Text, [(Nat64, Nat)]>(entries.vals(), Text.equal, Text.hash);
         };
 
         private func _loadFromSM(field : (Nat64, Nat)) : Blob {

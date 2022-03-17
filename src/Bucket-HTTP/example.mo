@@ -16,24 +16,23 @@ actor example{
     let bucket = BucketHttp.BucketHttp(true); // true : upgradable, false : unupgradable
     
     //host/static/<photo_id>
-    private func decodekey(url: Text): Blob {
+    private func decodeurl(url: Text): Text {
         let path = Iter.toArray(Text.tokens(url, #text("/")));
         if(path.size() == 2 and path[0] == "static") {
-            let key = Text.encodeUtf8(path[1]);
-            return key;
+            return path[1];
         };
-        Text.encodeUtf8("Wrong key");
+        return "Wrong key";
     };
     
     public func build_http(): async () {
-        bucket.build_http(decodekey);
+        bucket.build_http(decodeurl);
     };
 
     public query func http_request(request: HttpRequest): async HttpResponse {
         bucket.http_request(request)
     };
     
-    public query func getBlob(key: Blob) : async Result.Result<[Blob], Error>{
+    public query func getBlob(key: Text) : async Result.Result<[Blob], Error>{
         switch(bucket.get(key)){
             case(#err(e)){ #err(e) };
             case(#ok(blob)){
@@ -42,7 +41,7 @@ actor example{
         }
     };
     
-    public shared func putImg(key: Blob,value: Blob) : async Result.Result<(), Error>{
+    public shared func putImg(key: Text,value: Blob) : async Result.Result<(), Error>{
         switch(bucket.put(key, value)){
             case(#err(e)){ return #err(e) };
             case(_){};
@@ -51,7 +50,7 @@ actor example{
     };
 
     public shared func putBlob() : async Result.Result<(), Error>{
-        let key = Text.encodeUtf8("key");
+        let key = "key";
         let value = Text.encodeUtf8("this is the value");
         switch(bucket.put(key, value)){
             case(#err(e)){ return #err(e) };

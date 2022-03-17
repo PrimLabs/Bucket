@@ -13,10 +13,10 @@ actor example{
         text : Text;
         bool : Bool
     };
-    stable var bucket_entries : [(Blob, [(Nat64, Nat)])] = [];
+    stable var bucket_entries : [(Text, [(Nat64, Nat)])] = [];
     let bucket = Bucket.Bucket(true); // true : upgradable, false : unupgradable
 
-    public query func getBlob(key : Blob) : async Result.Result<[Blob], Error>{
+    public query func getBlob(key : Text) : async Result.Result<[Blob], Error>{
         switch(bucket.get(key)){
             case(#err(e)){ #err(e) };
             case(#ok(blob)){
@@ -25,7 +25,7 @@ actor example{
         }
     };
 
-    public query func get(key : Blob) : async Result.Result<[S], Error>{
+    public query func get(key : Text) : async Result.Result<[S], Error>{
         switch(bucket.get(key)){
             case(#err(info)){ #err(info) };
             case(#ok(data)){ #ok(deserialize(data)) };
@@ -33,7 +33,7 @@ actor example{
     };
 
     public func put() : async Result.Result<(), Error>{
-        let key = Text.encodeUtf8("key");
+        let key = "key";
         let value_1 : S = {
             text = "this is the first slice of value";
             bool = true
@@ -55,7 +55,7 @@ actor example{
     };
 
     public func putBlob() : async Result.Result<(), Error>{
-        let key = Text.encodeUtf8("key");
+        let key = "key";
         let value = Text.encodeUtf8("this is the value");
         switch(bucket.put(key, value)){
             case(#err(e)){ return #err(e) };
