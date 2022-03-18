@@ -28,13 +28,13 @@ You can use this as simple as using the TireMap.
 
 - Second, you need to declare a Bucket
 
-   **upgrade** ：This means that you can upgrade your canister without discarding files stored in the stablememory. Meanwhile available stablememory will become **aval_stablememory = 8G - heap memory **
+   **upgrade** ：This means that you can upgrade your canister without discarding files stored in the stablememory. Meanwhile available stablememory will become **aval_stablememory** = **8G - heap memory**
    
    ```motoko
    let bucket = Bucket.Bucket(true); // true : upgradable, false : unupgradable
    ```
 
-​       You have a few more things to do below: 
+   You have a few more things to do below: 
 
    1. you should use a stable entries to store your key-value pairs during upgrade
 
@@ -54,12 +54,12 @@ You can use this as simple as using the TireMap.
               bucket_entries := [];
           };
       ```
+      
+  **unupgradable** : This means that if you upgrade your canister, you will discard files stored in the stablememory
+  ```motoko
+  let bucket = Bucket.Bucket(false); // true : upgradable, false : unupgradabl
+  ```
 
- **unupgradable** : This means that if you upgrade your canister, you will discard files stored in the stablememory
-
-       ```motoko
-       let bucket = Bucket.Bucket(false); // true : upgradable, false : unupgradabl
-       ```
 
 - Third,configure the **dfx.json**
 
