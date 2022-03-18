@@ -81,7 +81,7 @@ You can use this as simple as using the TireMap.
   public func put(key: Text, value : Blob): Result.Result<(), Error>
   ```
 
-  tips: you can transform any type T to Text by using ``debug_show(t:)``
+  tips: you can transform any type T to Text by using ``debug_show(t: T)``
 
 - **get** : use the key to get the value
 
@@ -129,7 +129,7 @@ Due to the problem of IC mainnet, HTTP-StreamingCallback cannot work at present,
   public func put(key: Text, value : Blob): Result.Result<(), Error>
   ```
 
-  tips: you can transform any type T to Text by using ``debug_show(t:)``
+  tips: you can transform any type T to Text by using ``debug_show(t: T)``
 
 - **get** : use the key to get the value
 
