@@ -55,6 +55,7 @@ You can use this as simple as using the TireMap.
           };
       ```
       
+  
   **unupgradable** : This means that if you upgrade your canister, you will discard files stored in the stablememory
   ```motoko
   let bucket = Bucket.Bucket(false); // true : upgradable, false : unupgradabl
@@ -75,13 +76,25 @@ You can use this as simple as using the TireMap.
 
 ###  API
 
-- **put** ：put the value into stablememory,use key to index
+- **put_replace** ：put the value into stablememory,use key to index
+
+  ​                           Suitable for a single file block, if you add it again with the same key, it will overwrite the previous file
 
   ```motoko
-  public func put(key: Text, value : Blob): Result.Result<(), Error>
+  public func put_replace(key: Text, value : Blob): Result.Result<(), Error>
   ```
 
   tips: you can transform any type T to Text by using ``debug_show(t: T)``
+
+- **put_append** ：put the value into stablememory,use key to index
+
+  ​                           Suitable for multiple file blocks, if added again with the same key, it will be merged with the previous file block
+
+  ```motoko
+  public func put_append(key: Text, value : Blob): Result.Result<(), Error>
+  ```
+
+  tips: you can transform any type T to Text by using ``debug_show(t: T)`
 
 - **get** : use the key to get the value
 
@@ -123,13 +136,25 @@ Due to the problem of IC mainnet, HTTP-StreamingCallback cannot work at present,
 
 ###  API
 
-- **put** ：put the value into stablememory,use key to index
+- **put_replace** ：put the value into stablememory,use key to index
+
+  ​                           Suitable for a single file block, if you add it again with the same key, it will overwrite the previous file
 
   ```motoko
-  public func put(key: Text, value : Blob): Result.Result<(), Error>
+  public func put_replace(key: Text, value : Blob): Result.Result<(), Error>
   ```
 
   tips: you can transform any type T to Text by using ``debug_show(t: T)``
+
+- **put_append** ：put the value into stablememory,use key to index
+
+  ​                           Suitable for multiple file blocks, if added again with the same key, it will be merged with the previous file block
+
+  ```motoko
+  public func put_append(key: Text, value : Blob): Result.Result<(), Error>
+  ```
+
+  tips: you can transform any type T to Text by using ``debug_show(t: T)`
 
 - **get** : use the key to get the value
 
