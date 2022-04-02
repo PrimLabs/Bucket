@@ -24,7 +24,20 @@ module {
         private var offset                  = 8; // 0 - 7 is used for offset
         var assets = TrieMap.TrieMap<Text, [(Nat64, Nat)]>(Text.equal, Text.hash);
 
-        public func put(key: Text, value : Blob): Result.Result<(), Error> {
+        // 适合单个文件，若第二此添加，会覆盖之前的
+        public func put_replace(key: Text, value : Blob): Result.Result<(), Error> {
+            switch(_getField(value.size())) {
+                case(#ok(field)) {
+                    assets.put(key, [field]);
+                    _storageData(field.0, value);
+                };
+                case(#err(err)) { return #err(err) };
+            };
+            #ok(())
+        };
+
+        // 适合多个文件，可以追加
+        public func put_append(key: Text, value : Blob): Result.Result<(), Error> {
             switch(_getField(value.size())) {
                 case(#ok(field)) {
                     switch(assets.get(key)){
@@ -42,7 +55,7 @@ module {
             };
             #ok(())
         };
-
+        
         public func get(key: Text): Result.Result<[Blob], Error> {
             switch(assets.get(key)) {
                 case(null) { return #err(#INVALID_KEY) };

@@ -42,12 +42,12 @@ actor example{
             text = "this is the second slice of value";
             bool = false
         };
-        switch(bucket.put(key, serialize(value_1))){
+        switch(bucket.put_append(key, serialize(value_1))){
             case(#err(e)){ return #err(e) };
             case(_){};
         };
         // you can storage the two different value using the same key
-        switch(bucket.put(key, serialize(value_2))){
+        switch(bucket.put_append(key, serialize(value_2))){
             case(#err(e)){ return #err(e) };
             case(_){};
         };
@@ -57,7 +57,7 @@ actor example{
     public func putBlob() : async Result.Result<(), Error>{
         let key = "key";
         let value = Text.encodeUtf8("this is the value");
-        switch(bucket.put(key, value)){
+        switch(bucket.put_replace(key, value)){
             case(#err(e)){ return #err(e) };
             case(_){};
         };

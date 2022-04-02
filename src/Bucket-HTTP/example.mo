@@ -44,7 +44,7 @@ actor example{
     };
 
     public shared func putImg(key: Text,value: Blob) : async Result.Result<(), Error>{
-        switch(bucket.put(key, value)){
+        switch(bucket.put_append(key, value)){
             case(#err(e)){ return #err(e) };
             case(_){};
         };
@@ -54,7 +54,7 @@ actor example{
     public shared func putBlob() : async Result.Result<(), Error>{
         let key = "key";
         let value = Text.encodeUtf8("this is the value");
-        switch(bucket.put(key, value)){
+        switch(bucket.put_replace(key, value)){
             case(#err(e)){ return #err(e) };
             case(_){};
         };
