@@ -14,6 +14,7 @@ module {
         #INSUFFICIENT_MEMORY;
         #BlobSizeError;
         #INVALID_KEY;
+        #Append_Error;
     };
 
     public type HeaderField = (Text, Text);
@@ -53,8 +54,7 @@ module {
         private var decodeurl: ?DecodeUrl   = null;
         var assets = TrieMap.TrieMap<Text, [(Nat64, Nat)]>(Text.equal, Text.hash);
 
-        // 适合单个文件，若第二此添加，会覆盖之前的
-        public func put_replace(key: Text, value : Blob): Result.Result<(), Error> {
+        public func put(key: Text, value : Blob): Result.Result<(), Error> {
             switch(_getField(value.size())) {
                 case(#ok(field)) {
                     assets.put(key, [field]);
@@ -65,14 +65,11 @@ module {
             #ok(())
         };
 
-        // 适合多个文件，可以追加
-        public func put_append(key: Text, value : Blob): Result.Result<(), Error> {
+        public func append(key: Text, value : Blob): Result.Result<(), Error> {
             switch(_getField(value.size())) {
                 case(#ok(field)) {
                     switch(assets.get(key)){
-                        case null {
-                            assets.put(key, [field]);
-                        };
+                        case null { return #err(#Append_Error);};
                         case(?pre_field){
                             let present_field = Array.append<(Nat64, Nat)>(pre_field, [field]);
                             assets.put(key, present_field);
@@ -84,7 +81,7 @@ module {
             };
             #ok(())
         };
-        
+
         public func get(key: Text): Result.Result<[Blob], Error> {
             switch(assets.get(key)) {
                 case(null) { return #err(#INVALID_KEY) };
