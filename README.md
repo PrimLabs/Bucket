@@ -39,7 +39,7 @@ You can use this as simple as using the TireMap.
    1. you should use a stable entries to store your key-value pairs during upgrade
 
       ```motoko
-      stable var entries: [(Text,[(Nat64, Nat)])] = [];
+      stable var bucket_entries: [(Text,[(Nat64, Nat)])] = [];
       ```
 
    2. You also need to configure the system function [preupgrade and postupgrade](https://smartcontracts.org/docs/language-guide/upgrades.html#_preupgrade_and_postupgrade_system_methods)
