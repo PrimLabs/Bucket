@@ -8,30 +8,33 @@ import Nat "mo:base/Nat";
 import Debug "mo:base/Debug";
 import SM "mo:base/ExperimentalStableMemory";
 
-actor example{
-
-    type HttpRequest = BucketHttp.HttpRequest; 
+actor example{   
+    type HttpRequest = BucketHttp.HttpRequest;
     type HttpResponse = BucketHttp.HttpResponse;
-
+    type CallbackToken = BucketHttp.CallbackToken;
+    type StreamingCallbackResponse = BucketHttp.StreamingCallbackResponse;
     type Error = BucketHttp.Error;
+    
     stable var entries : [(Text, [(Nat64, Nat)])] = [];
     let bucket = BucketHttp.BucketHttp(true); // true : upgradable, false : unupgradable
     
-    //host/static/<photo_id>
-    private func decodeurl(url: Text): Text {
+    // CanisterId.raw.ic0.app/fileType/fileKey 
+    private func decodeurl(url: Text): (Text, Text) { //(fileType, fileKey)
         let path = Iter.toArray(Text.tokens(url, #text("/")));
-        if(path.size() == 2 and path[0] == "static") {
-            return path[1];
-        };
-        return "Wrong key";
+        if(path.size() == 2) return (path[0], path[1]);
+        return ("txt", "Wrong key");
     };
 
-    public func build_http(): async () {
+    public shared func build_http(): async () {
         bucket.build_http(decodeurl);
     };
 
+    public query func streamingCallback(token: CallbackToken): async StreamingCallbackResponse {
+        bucket.streamingCallback(token)
+    };
+
     public query func http_request(request: HttpRequest): async HttpResponse {
-        bucket.http_request(request)
+        bucket.http_request(request, streamingCallback)
     };
 
     public query func getBlob(key: Text) : async Result.Result<[Blob], Error>{

@@ -18,15 +18,19 @@ module {
     };
 
     public type HeaderField = (Text, Text);
-    public type StreamingCallbackHttpResponse = {
+    public type StreamingCallbackResponse = {
         body: Blob;
-        token: ?Token;
+        token: ?CallbackToken;
     };
-    public type Token = {};
+    public type CallbackToken = {
+        index: Nat;
+        key: Text;
+    };
+    public type StreamingCallback = query (CallbackToken) -> async (StreamingCallbackResponse);
     public type StreamingStrategy = {
         #Callback: {
-            callback: query (Token) -> async(StreamingCallbackHttpResponse);
-            token: Token;
+            callback: StreamingCallback;
+            token: CallbackToken;
         }
     };
     public type HttpRequest = {
@@ -40,9 +44,9 @@ module {
         headers: [HeaderField];
         body: Blob;
         streaming_strategy: ?StreamingStrategy;
-    };
+    };   
     
-    public type DecodeUrl = (Text) -> (Text);
+    public type DecodeUrl = (Text) -> (Text, Text);
     
     public class BucketHttp(upgradable : Bool) {
         private let THRESHOLD               = 6442450944;
@@ -97,29 +101,61 @@ module {
             };
         };
 
-        public func http_request(request: HttpRequest): HttpResponse {
+        public func http_request(request: HttpRequest,callbackfunc: StreamingCallback): HttpResponse {
             switch(decodeurl) {
-                case(null) { return errStaticpage("decodeurl wrong");};
-                case(?getkey) {
-                    let key = getkey(request.url);
-                    switch(get(key)) {
+                case(null) { return errStaticpage("Decodeurl Funtion Wrong");};
+                case(?_decodeurl) {
+                    let info = _decodeurl(request.url);
+                    let fileKey = info.1;let fileType = info.0;
+                    switch(get(fileKey)) {
                         case(#err(err)) { return errStaticpage("get wrong");};
-                        case(#ok(ans)) {
-                            let number = ans.size();
+                        case(#ok(payload)) {
+                            let number = payload.size();
                             if(number == 1) {
-                                let payload = ans[0];
                                 return {
                                     status_code = 200;
-                                    headers = [("Content-Type", "text/plain"), ("Content-Length", Nat.toText(payload.size()))];
+                                    headers = getContentType(fileType);
+                                    body = payload[0];
                                     streaming_strategy = null;
-                                    body = payload;
                                 };
-                            };
+                            } else {
+                                return {
+                                    status_code = 200;
+                                    headers = getContentType(fileType);
+                                    body = payload[0];
+                                    streaming_strategy = ?#Callback({
+                                        callback = callbackfunc;
+                                        token = {
+                                            index = 1;
+                                            key = fileKey;
+                                        };
+                                    });
+                                }
+                            }
                         };
                     };                    
                 };
             };
-            errStaticpage("somting wrong")
+            errStaticpage("Somting Wrong")
+        };
+
+        public func streamingCallback(token: CallbackToken): StreamingCallbackResponse {
+            var payload: [Blob] = [];
+            switch(get(token.key)) {
+                case(#err(err)) {};
+                case(#ok(ans)) { payload := ans;};
+            };
+            {
+                body  = payload[token.index];
+                token = if(token.index + 1 == payload.size() ) {
+                    null
+                } else {
+                    ?{
+                        index = token.index + 1;
+                        key   = token.key;
+                    }
+                };
+            }
         };
 
         public func build_http(fn_: DecodeUrl): () {
@@ -141,6 +177,20 @@ module {
         public func postupgrade(entries : [(Text, [(Nat64, Nat)])]): () {
             offset := Nat64.toNat(SM.loadNat64(0:Nat64));
             assets := TrieMap.fromEntries<Text, [(Nat64, Nat)]>(entries.vals(), Text.equal, Text.hash);
+        };
+
+        private func getContentType(fileType: Text): [HeaderField] {
+            if(fileType == "gif") return [("Content-Type", "image/gif")];
+            if(fileType == "jpeg") return [("Content-Type", "image/jpeg")];
+            if(fileType == "png") return [("Content-Type", "image/png")];
+            if(fileType == "pdf") return [("Content-Type", "application/pdf")];
+            if(fileType == "doc") return [("Content-Type", "application/msword")];
+            if(fileType == "mp3") return [("Content-Type", "audio/mp3")];
+            if(fileType == "mp4") return [("Content-Type", "video/mp4")];
+            if(fileType == "txt") return [("Content-Type", "text/plain")];
+            if(fileType == "ppt") return [("Content-Type", "application/vnd.ms-powerpoint")];
+            if(fileType == "css") return [("Content-Type", "text/css")];
+            return [("Content-Type", "text/html; charset=utf-8")];
         };
 
         private func _loadFromSM(field : (Nat64, Nat)) : Blob {
