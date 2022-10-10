@@ -56,9 +56,9 @@ You can use this as simple as using the TireMap.
       ```
       
   
-  **unupgradable** : This means that if you upgrade your canister, you will discard files stored in the stablememory
+  **nonupgradable** : This means that if you upgrade your canister, you will discard files stored in the stablememory
   ```motoko
-  let bucket = Bucket.Bucket(false); // true : upgradable, false : unupgradabl
+  let bucket = Bucket.Bucket(false); // true : upgradable, false : nonupgradable
   ```
 
 
